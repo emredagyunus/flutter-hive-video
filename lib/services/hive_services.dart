@@ -1,7 +1,8 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_video/Models/video_model.dart';
-
 
 class HiveService with ChangeNotifier {
   Box<VideoModel>? _videoBox;
@@ -32,5 +33,32 @@ class HiveService with ChangeNotifier {
   Future<void> deleteVideo(int index) async {
     await _videoBox!.deleteAt(index);
     notifyListeners();
+  }
+
+  Future<void> uploadVideo(int index) async {
+    final video = videoBox.getAt(index);
+    if (video != null && !video.isUpload) {
+      try {
+        File videoFile = File(video.path);
+        String fileName = 'videos/${videoFile.uri.pathSegments.last}';
+        TaskSnapshot uploadTask =
+            await FirebaseStorage.instance.ref(fileName).putFile(videoFile);
+
+        if (uploadTask.state == TaskState.success) {
+          video.isUpload = true;
+          await updateVideo(index, video);
+          await deleteVideo(index);
+          print("firebase e kaydedildi");
+        }
+      } catch (e) {
+        Future.delayed(Duration(seconds: 10), () => uploadVideo(index));
+      }
+    }
+  }
+
+  void retryFailedUploads() {
+    for (int i = 0; i < videoBox.length; i++) {
+      uploadVideo(i);
+    }
   }
 }

@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:hive_video/Models/video_model.dart';
 import 'package:hive_video/services/hive_services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
+import 'dart:io';
 import 'package:video_player/video_player.dart';
 
 class VideoPage extends StatefulWidget {
@@ -18,28 +17,31 @@ class _VideoPageState extends State<VideoPage> {
   final ImagePicker _picker = ImagePicker();
   VideoPlayerController? _controller;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<HiveService>(context, listen: false).retryFailedUploads();
+    });
+  }
+
   Future<void> _pickVideo() async {
     final XFile? video = await _picker.pickVideo(source: ImageSource.camera);
     if (video != null) {
       final File videoFile = File(video.path);
-      final VideoModel videoModel =
-          VideoModel(path: videoFile.path, isUpload: false);
+      final VideoModel videoModel = VideoModel(
+        path: videoFile.path,
+        isUpload: false,
+      );
 
       await Provider.of<HiveService>(context, listen: false)
           .addVideo(videoModel);
-
       setState(() {});
     }
   }
 
   void _toggleUploadStatus(int index) {
-    final hiveService = Provider.of<HiveService>(context, listen: false);
-    final video = hiveService.videoBox.getAt(index) as VideoModel?;
-    if (video != null) {
-      video.isUpload = !video.isUpload;
-      hiveService.updateVideo(index, video);
-      setState(() {});
-    }
+    Provider.of<HiveService>(context, listen: false).uploadVideo(index);
   }
 
   @override

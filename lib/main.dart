@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive_video/Models/video_model.dart';
@@ -11,6 +12,8 @@ void main() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter(appDocumentDir.path);
   Hive.registerAdapter(VideoModelAdapter());
+
+  await Firebase.initializeApp();
 
   final hiveService = HiveService();
   await hiveService.init();
