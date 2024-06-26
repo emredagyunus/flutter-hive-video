@@ -21,22 +21,22 @@ class HiveService with ChangeNotifier {
   }
 
   Future<void> addVideo(VideoModel video) async {
-    await _videoBox!.put(video.uid, video); // UID'ye göre video ekleyin
+    await _videoBox!.put(video.uid, video);
     notifyListeners();
   }
 
   Future<void> updateVideo(String uid, VideoModel video) async {
-    await _videoBox!.put(uid, video); // UID'ye göre video güncelleyin
+    await _videoBox!.put(uid, video);
     notifyListeners();
   }
 
   Future<void> deleteVideo(String uid) async {
-    await _videoBox!.delete(uid); // UID'ye göre video silin
+    await _videoBox!.delete(uid);
     notifyListeners();
   }
 
   Future<void> uploadVideo(String uid) async {
-    final video = videoBox.get(uid); // UID'ye göre video alın
+    final video = videoBox.get(uid);
     if (video != null && !video.isUpload) {
       try {
         File videoFile = File(video.path);
@@ -46,12 +46,12 @@ class HiveService with ChangeNotifier {
 
         if (uploadTask.state == TaskState.success) {
           video.isUpload = true;
-          await updateVideo(uid, video); // UID'ye göre video güncelle
-          await deleteVideo(uid); // UID'ye göre video sil
+          await updateVideo(uid, video);
+          await deleteVideo(uid);
           print("Firebase'e yüklendi");
         }
       } catch (e) {
-        Future.delayed(Duration(seconds: 10), () => uploadVideo(uid)); // Hata durumunda tekrar dene
+        Future.delayed(Duration(seconds: 10), () => uploadVideo(uid));
       }
     }
   }

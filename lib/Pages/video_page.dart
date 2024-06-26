@@ -40,13 +40,13 @@ class _VideoPageState extends State<VideoPage> {
       );
 
       await Provider.of<HiveService>(context, listen: false).addVideo(videoModel);
-      Provider.of<HiveService>(context, listen: false).uploadVideo(uid); // UID'yi kullanarak yükleme işlemi
+      Provider.of<HiveService>(context, listen: false).uploadVideo(uid);
       setState(() {});
     }
   }
 
   void _toggleUploadStatus(String uid) {
-    Provider.of<HiveService>(context, listen: false).uploadVideo(uid); // UID'yi kullanarak yükleme durumunu değiştirme
+    Provider.of<HiveService>(context, listen: false).uploadVideo(uid);
   }
 
   @override
@@ -65,7 +65,7 @@ class _VideoPageState extends State<VideoPage> {
         itemBuilder: (context, index) {
           final video = videos[index];
           return ListTile(
-            title: Text('Video ${video.uid}'), // Video UID'sini kullanarak listeleme
+            title: Text('Video ${video.uid}'),
             subtitle: Text(video.isUpload ? 'Uploaded' : 'Not Uploaded'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -79,7 +79,7 @@ class _VideoPageState extends State<VideoPage> {
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () {
-                    hiveService.deleteVideo(video.uid); // UID'yi kullanarak video silme
+                    hiveService.deleteVideo(video.uid);
                     setState(() {});
                   },
                 ),
