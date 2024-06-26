@@ -21,22 +21,22 @@ class HiveService with ChangeNotifier {
   }
 
   Future<void> addVideo(VideoModel video) async {
-    await _videoBox!.add(video);
+    await _videoBox!.put(video.uid, video); // UID'ye göre video ekleyin
     notifyListeners();
   }
 
-  Future<void> updateVideo(int index, VideoModel video) async {
-    await _videoBox!.putAt(index, video);
+  Future<void> updateVideo(String uid, VideoModel video) async {
+    await _videoBox!.put(uid, video); // UID'ye göre video güncelleyin
     notifyListeners();
   }
 
-  Future<void> deleteVideo(int index) async {
-    await _videoBox!.deleteAt(index);
+  Future<void> deleteVideo(String uid) async {
+    await _videoBox!.delete(uid); // UID'ye göre video silin
     notifyListeners();
   }
 
-  Future<void> uploadVideo(int index) async {
-    final video = videoBox.getAt(index);
+  Future<void> uploadVideo(String uid) async {
+    final video = videoBox.get(uid); // UID'ye göre video alın
     if (video != null && !video.isUpload) {
       try {
         File videoFile = File(video.path);
@@ -46,19 +46,22 @@ class HiveService with ChangeNotifier {
 
         if (uploadTask.state == TaskState.success) {
           video.isUpload = true;
-          await updateVideo(index, video);
-          await deleteVideo(index);
-          print("firebase e kaydedildi");
+          await updateVideo(uid, video); // UID'ye göre video güncelle
+          await deleteVideo(uid); // UID'ye göre video sil
+          print("Firebase'e yüklendi");
         }
       } catch (e) {
-        Future.delayed(Duration(seconds: 10), () => uploadVideo(index));
+        Future.delayed(Duration(seconds: 10), () => uploadVideo(uid)); // Hata durumunda tekrar dene
       }
     }
   }
 
   void retryFailedUploads() {
     for (int i = 0; i < videoBox.length; i++) {
-      uploadVideo(i);
+      final video = videoBox.getAt(i);
+      if (video != null && !video.isUpload) {
+        uploadVideo(video.uid);
+      }
     }
   }
 }

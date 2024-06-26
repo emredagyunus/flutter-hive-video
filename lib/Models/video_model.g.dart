@@ -17,18 +17,21 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return VideoModel(
-      path: fields[0] as String,
-      isUpload: fields[1] as bool,
+      uid: fields[0] as String,
+      path: fields[1] as String,
+      isUpload: fields[2] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, VideoModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.path)
+      ..write(obj.uid)
       ..writeByte(1)
+      ..write(obj.path)
+      ..writeByte(2)
       ..write(obj.isUpload);
   }
 

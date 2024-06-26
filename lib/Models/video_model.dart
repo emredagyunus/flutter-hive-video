@@ -5,10 +5,13 @@ part 'video_model.g.dart';
 @HiveType(typeId: 0)
 class VideoModel extends HiveObject {
   @HiveField(0)
-  final String path;
+  final String uid;
 
   @HiveField(1)
+  final String path;
+
+  @HiveField(2)
   bool isUpload;
 
-  VideoModel({required this.path, this.isUpload = false});
+  VideoModel({required this.uid, required this.path, this.isUpload = false});
 }

@@ -3,11 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hive_video/Models/video_model.dart';
 import 'package:hive_video/services/hive_services.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
 
 class VideoPage extends StatefulWidget {
-  const VideoPage({super.key});
+  const VideoPage({Key? key}) : super(key: key);
 
   @override
   _VideoPageState createState() => _VideoPageState();
@@ -20,7 +21,7 @@ class _VideoPageState extends State<VideoPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       Provider.of<HiveService>(context, listen: false).retryFailedUploads();
     });
   }
@@ -29,19 +30,23 @@ class _VideoPageState extends State<VideoPage> {
     final XFile? video = await _picker.pickVideo(source: ImageSource.camera);
     if (video != null) {
       final File videoFile = File(video.path);
+
+      String uid = const Uuid().v4();
+      
       final VideoModel videoModel = VideoModel(
+        uid: uid,
         path: videoFile.path,
         isUpload: false,
       );
 
-      await Provider.of<HiveService>(context, listen: false)
-          .addVideo(videoModel);
+      await Provider.of<HiveService>(context, listen: false).addVideo(videoModel);
+      Provider.of<HiveService>(context, listen: false).uploadVideo(uid); // UID'yi kullanarak yükleme işlemi
       setState(() {});
     }
   }
 
-  void _toggleUploadStatus(int index) {
-    Provider.of<HiveService>(context, listen: false).uploadVideo(index);
+  void _toggleUploadStatus(String uid) {
+    Provider.of<HiveService>(context, listen: false).uploadVideo(uid); // UID'yi kullanarak yükleme durumunu değiştirme
   }
 
   @override
@@ -52,6 +57,7 @@ class _VideoPageState extends State<VideoPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Video List'),
+        centerTitle: true,
         backgroundColor: Colors.deepPurple,
       ),
       body: ListView.builder(
@@ -59,7 +65,7 @@ class _VideoPageState extends State<VideoPage> {
         itemBuilder: (context, index) {
           final video = videos[index];
           return ListTile(
-            title: Text('Video $index'),
+            title: Text('Video ${video.uid}'), // Video UID'sini kullanarak listeleme
             subtitle: Text(video.isUpload ? 'Uploaded' : 'Not Uploaded'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -71,15 +77,9 @@ class _VideoPageState extends State<VideoPage> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.cloud_upload),
-                  onPressed: () {
-                    _toggleUploadStatus(index);
-                  },
-                ),
-                IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () {
-                    hiveService.deleteVideo(index);
+                    hiveService.deleteVideo(video.uid); // UID'yi kullanarak video silme
                     setState(() {});
                   },
                 ),
@@ -116,6 +116,7 @@ class _VideoPageState extends State<VideoPage> {
     super.dispose();
   }
 }
+
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoPath;
